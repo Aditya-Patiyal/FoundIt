@@ -41,6 +41,8 @@ export default function PostForm({ userId }: { userId: string }) {
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    // Capture form fields NOW — e.currentTarget is null after the awaits below.
+    const data = new FormData(e.currentTarget);
     setError("");
     if (photos.length === 0) {
       setError("Please add at least one photo.");
@@ -61,8 +63,6 @@ export default function PostForm({ userId }: { userId: string }) {
         paths.push(path);
       }
 
-      const form = e.currentTarget;
-      const data = new FormData(form);
       const result = await createItem({
         title: String(data.get("title") ?? ""),
         category,
@@ -86,7 +86,7 @@ export default function PostForm({ userId }: { userId: string }) {
           ? String((err as { message: unknown }).message)
           : String(err);
       console.error("Post failed:", err);
-      setError(`Upload failed: ${msg}`);
+      setError(`Couldn't post the item: ${msg}`);
       setBusy(false);
     }
   }
