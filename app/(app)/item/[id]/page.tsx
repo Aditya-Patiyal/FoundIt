@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getItem } from "@/lib/items";
+import { getViewerItemContext } from "@/lib/claims";
 import { photoPublicUrl } from "@/lib/photos";
 import { timeAgo } from "@/lib/time";
 
@@ -9,6 +10,7 @@ export default async function ItemPage({ params }: PageProps<"/item/[id]">) {
   const item = await getItem(id);
   if (!item) notFound();
 
+  const ctx = await getViewerItemContext(id);
   const place = item.spot ? `${item.zone} · ${item.spot}` : item.zone;
   const holdingLabel =
     item.holding === "with_finder" ? "Finder is holding it" : "Already at an office";
@@ -58,7 +60,41 @@ export default async function ItemPage({ params }: PageProps<"/item/[id]">) {
         <p className="mt-4 whitespace-pre-wrap text-ink">{item.public_description}</p>
       ) : null}
 
-      {/* How claiming works */}
+      {/* Role-aware call to action */}
+      {ctx.isFinder ? (
+        <FinderCta itemId={id} pendingCount={ctx.pendingCount} />
+      ) : ctx.myClaimStatus ? (
+        <ClaimantStatus status={ctx.myClaimStatus} />
+      ) : (
+        <PotentialClaimantCta itemId={id} />
+      )}
+    </main>
+  );
+}
+
+function FinderCta({ itemId, pendingCount }: { itemId: string; pendingCount: number }) {
+  return (
+    <>
+      <div className="mt-5 rounded-card bg-primary-soft p-4 text-sm text-primary-on-soft">
+        <p className="font-semibold">You posted this item.</p>
+        <p className="mt-1">
+          When someone claims it, review their answers against your private note, then
+          accept to open a chat.
+        </p>
+      </div>
+      <Link
+        href={`/item/${itemId}/claims`}
+        className="mt-5 block w-full rounded-btn bg-primary px-4 py-3 text-center font-semibold text-white hover:opacity-95"
+      >
+        Review claims{pendingCount > 0 ? ` (${pendingCount})` : ""}
+      </Link>
+    </>
+  );
+}
+
+function PotentialClaimantCta({ itemId }: { itemId: string }) {
+  return (
+    <>
       <div className="mt-5 rounded-card bg-primary-soft p-4 text-sm text-primary-on-soft">
         <p className="font-semibold">Is this yours?</p>
         <p className="mt-1">
@@ -67,23 +103,38 @@ export default async function ItemPage({ params }: PageProps<"/item/[id]">) {
           place to get it back.
         </p>
       </div>
-
       <p className="mt-3 text-xs text-muted">
         If no one claims it within 7 days, the finder hands it to the official lost &amp;
         found office.
       </p>
-
-      {/* This is mine — wired up in Step 3 (claims) */}
-      <button
-        type="button"
-        disabled
-        className="mt-5 w-full cursor-not-allowed rounded-btn bg-primary px-4 py-3 font-semibold text-white opacity-60"
+      <Link
+        href={`/item/${itemId}/claim`}
+        className="mt-5 block w-full rounded-btn bg-primary px-4 py-3 text-center font-semibold text-white hover:opacity-95"
       >
         This is mine
-      </button>
-      <p className="mt-2 text-center text-xs text-muted">
-        Claiming turns on in the next update.
-      </p>
-    </main>
+      </Link>
+    </>
+  );
+}
+
+function ClaimantStatus({ status }: { status: string }) {
+  const map: Record<string, { text: string; cls: string }> = {
+    pending: {
+      text: "Your claim was sent. The finder is reviewing it.",
+      cls: "bg-warning-bg text-warning",
+    },
+    accepted: {
+      text: "Your claim was accepted. Chat opens in the next update.",
+      cls: "bg-success-bg text-success",
+    },
+    rejected: {
+      text: "The finder said this isn't a match.",
+      cls: "bg-black/5 text-muted",
+    },
+    withdrawn: { text: "You withdrew this claim.", cls: "bg-black/5 text-muted" },
+  };
+  const s = map[status] ?? map.pending;
+  return (
+    <div className={`mt-5 rounded-card p-4 text-sm font-medium ${s.cls}`}>{s.text}</div>
   );
 }
