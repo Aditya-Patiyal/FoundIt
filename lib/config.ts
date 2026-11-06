@@ -30,3 +30,46 @@ export const HOSTEL_BLOCKS: string[] = [
   ...Array.from({ length: 12 }, (_, i) => `Hostel Block ${i + 1}`),
   "Day scholar (no hostel)",
 ];
+
+// Item categories (README §8). Stored value for an item is one of CATEGORIES.
+// "All" is only a Browse filter, never a stored value.
+export const CATEGORIES = [
+  "Phones",
+  "ID cards",
+  "Wallets",
+  "Keys",
+  "Bags",
+  "Bottles",
+  "Chargers",
+  "Books",
+  "Other",
+] as const;
+export type Category = (typeof CATEGORIES)[number];
+export const CATEGORY_FILTERS = ["All", ...CATEGORIES] as const;
+
+// Zones for "where found" (README §3): hostel blocks, academic blocks, and the
+// shared campus spots. Placeholders until the owner confirms real block names.
+export const ZONES: string[] = [
+  ...Array.from({ length: 12 }, (_, i) => `Hostel Block ${i + 1}`),
+  ...Array.from({ length: 5 }, (_, i) => `Academic Block ${i + 1}`),
+  "Cafeteria",
+  "Library",
+  "Gym",
+  "Main gate",
+  "Other / not sure",
+];
+
+// Where the item is now (README §5, §11 items.holding).
+export const HOLDING_OPTIONS = [
+  { value: "with_finder", label: "With me" },
+  { value: "at_office", label: "Already handed to an office" },
+] as const;
+export type Holding = (typeof HOLDING_OPTIONS)[number]["value"];
+
+// Supabase Storage bucket for item photos (public read; see 0002 migration).
+export const ITEM_PHOTOS_BUCKET = "item-photos";
+
+// Photo limits (README §9): keep storage small and uploads fast.
+export const MAX_PHOTOS_PER_ITEM = 3;
+export const PHOTO_MAX_DIMENSION = 1280; // px, longest side
+export const PHOTO_TARGET_BYTES = 200 * 1024; // ~200 KB target after compression
