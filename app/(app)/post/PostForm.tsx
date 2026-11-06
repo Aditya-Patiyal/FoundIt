@@ -79,8 +79,14 @@ export default function PostForm({ userId }: { userId: string }) {
         return;
       }
       router.push(`/item/${result.id}`);
-    } catch {
-      setError("Couldn't upload. Check your connection and try again.");
+    } catch (err) {
+      // Temporary: surface the real reason so we can diagnose upload failures.
+      const msg =
+        err && typeof err === "object" && "message" in err
+          ? String((err as { message: unknown }).message)
+          : String(err);
+      console.error("Post failed:", err);
+      setError(`Upload failed: ${msg}`);
       setBusy(false);
     }
   }
