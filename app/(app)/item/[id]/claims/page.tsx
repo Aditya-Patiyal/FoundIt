@@ -124,17 +124,19 @@ function ClaimCard({
             </button>
           </form>
         </div>
+      ) : claim.status === "accepted" ? (
+        <div className="mt-3 flex items-center justify-between gap-2">
+          <span className="text-sm font-semibold text-success">Accepted</span>
+          <Link
+            href={`/chat/${claim.id}`}
+            className="rounded-btn bg-primary px-3 py-2 text-sm font-semibold text-white hover:opacity-95"
+          >
+            Open chat
+          </Link>
+        </div>
       ) : (
-        <p
-          className={`mt-3 text-sm font-semibold ${
-            claim.status === "accepted" ? "text-success" : "text-muted"
-          }`}
-        >
-          {claim.status === "accepted"
-            ? "Accepted"
-            : claim.status === "rejected"
-              ? "Rejected"
-              : "Withdrawn"}
+        <p className="mt-3 text-sm font-semibold text-muted">
+          {claim.status === "rejected" ? "Rejected" : "Withdrawn"}
         </p>
       )}
     </div>

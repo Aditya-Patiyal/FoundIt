@@ -33,13 +33,26 @@ export async function decideClaim(formData: FormData) {
     .maybeSingle();
   if (!owned) return;
 
-  await supabase
-    .from("claims")
-    .update({
-      status: decision === "accept" ? "accepted" : "rejected",
-      decided_at: new Date().toISOString(),
-    })
-    .eq("id", claimId);
+  // On accept, reveal the finder's name to the claimant (README §11) by
+  // snapshotting it onto the claim — profiles RLS is own-row-only.
+  const update: {
+    status: "accepted" | "rejected";
+    decided_at: string;
+    finder_display_name?: string;
+  } = {
+    status: decision === "accept" ? "accepted" : "rejected",
+    decided_at: new Date().toISOString(),
+  };
+  if (decision === "accept") {
+    const { data: me } = await supabase
+      .from("profiles")
+      .select("display_name")
+      .eq("id", user.id)
+      .single();
+    update.finder_display_name = me?.display_name ?? "";
+  }
+
+  await supabase.from("claims").update(update).eq("id", claimId);
 
   revalidatePath(`/item/${claim.item_id}/claims`);
   revalidatePath(`/item/${claim.item_id}`);

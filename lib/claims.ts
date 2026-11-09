@@ -21,13 +21,15 @@ export type ClaimForReview = {
 export async function getViewerItemContext(itemId: string): Promise<{
   isFinder: boolean;
   myClaimStatus: ClaimStatus | null;
+  myClaimId: string | null;
   pendingCount: number;
 }> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { isFinder: false, myClaimStatus: null, pendingCount: 0 };
+  if (!user)
+    return { isFinder: false, myClaimStatus: null, myClaimId: null, pendingCount: 0 };
 
   const { data: owned } = await supabase
     .from("items")
@@ -49,7 +51,7 @@ export async function getViewerItemContext(itemId: string): Promise<{
 
   const { data: mine } = await supabase
     .from("claims")
-    .select("status")
+    .select("id, status")
     .eq("item_id", itemId)
     .eq("claimant_id", user.id)
     .order("created_at", { ascending: false })
@@ -59,6 +61,7 @@ export async function getViewerItemContext(itemId: string): Promise<{
   return {
     isFinder,
     myClaimStatus: (mine?.status as ClaimStatus | undefined) ?? null,
+    myClaimId: (mine?.id as string | undefined) ?? null,
     pendingCount,
   };
 }

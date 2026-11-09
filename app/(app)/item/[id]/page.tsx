@@ -64,7 +64,7 @@ export default async function ItemPage({ params }: PageProps<"/item/[id]">) {
       {ctx.isFinder ? (
         <FinderCta itemId={id} pendingCount={ctx.pendingCount} />
       ) : ctx.myClaimStatus ? (
-        <ClaimantStatus status={ctx.myClaimStatus} />
+        <ClaimantStatus status={ctx.myClaimStatus} claimId={ctx.myClaimId} />
       ) : (
         <PotentialClaimantCta itemId={id} />
       )}
@@ -117,14 +117,14 @@ function PotentialClaimantCta({ itemId }: { itemId: string }) {
   );
 }
 
-function ClaimantStatus({ status }: { status: string }) {
+function ClaimantStatus({ status, claimId }: { status: string; claimId: string | null }) {
   const map: Record<string, { text: string; cls: string }> = {
     pending: {
       text: "Your claim was sent. The finder is reviewing it.",
       cls: "bg-warning-bg text-warning",
     },
     accepted: {
-      text: "Your claim was accepted. Chat opens in the next update.",
+      text: "Your claim was accepted — chat with the finder to arrange a meet-up.",
       cls: "bg-success-bg text-success",
     },
     rejected: {
@@ -135,6 +135,16 @@ function ClaimantStatus({ status }: { status: string }) {
   };
   const s = map[status] ?? map.pending;
   return (
-    <div className={`mt-5 rounded-card p-4 text-sm font-medium ${s.cls}`}>{s.text}</div>
+    <>
+      <div className={`mt-5 rounded-card p-4 text-sm font-medium ${s.cls}`}>{s.text}</div>
+      {status === "accepted" && claimId ? (
+        <Link
+          href={`/chat/${claimId}`}
+          className="mt-3 block w-full rounded-btn bg-primary px-4 py-3 text-center font-semibold text-white hover:opacity-95"
+        >
+          Open chat
+        </Link>
+      ) : null}
+    </>
   );
 }
