@@ -3,24 +3,29 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import type { ChatMessage } from "@/lib/chat";
+import type { ChatMessage, ReturnState } from "@/lib/chat";
+import ReturnControls from "./ReturnControls";
 
 const MEETING_SPOTS = ["Cafeteria", "Library", "Main gate"];
 
 export default function ChatRoom({
   claimId,
   userId,
+  isFinder,
   otherName,
   itemId,
   itemTitle,
   initialMessages,
+  returnState,
 }: {
   claimId: string;
   userId: string;
+  isFinder: boolean;
   otherName: string;
   itemId: string;
   itemTitle: string;
   initialMessages: ChatMessage[];
+  returnState: ReturnState;
 }) {
   const [supabase] = useState(() => createClient());
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
@@ -156,14 +161,12 @@ export default function ChatRoom({
             Send
           </button>
         </form>
-        {/* Mark as returned — wired fully in Step 5 */}
-        <button
-          type="button"
-          disabled
-          className="mt-2 w-full cursor-not-allowed rounded-btn border border-black/10 py-2 text-sm font-semibold text-muted"
-        >
-          Mark as returned (next update)
-        </button>
+        <ReturnControls
+          claimId={claimId}
+          isFinder={isFinder}
+          otherName={otherName}
+          returnState={returnState}
+        />
       </div>
     </div>
   );

@@ -12,10 +12,12 @@ export default async function ChatPage({ params }: PageProps<"/chat/[claimId]">)
     <ChatRoom
       claimId={ctx.claimId}
       userId={ctx.userId}
+      isFinder={ctx.isFinder}
       otherName={ctx.otherName}
       itemId={ctx.itemId}
       itemTitle={ctx.itemTitle}
       initialMessages={ctx.messages}
+      returnState={ctx.returnState}
     />
   );
 }

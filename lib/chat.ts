@@ -8,6 +8,12 @@ export type ChatMessage = {
   created_at: string;
 };
 
+export type ReturnState = {
+  exists: boolean;
+  finderMarkedAt: string | null;
+  claimantConfirmedAt: string | null;
+};
+
 export type ChatContext = {
   claimId: string;
   userId: string;
@@ -16,6 +22,7 @@ export type ChatContext = {
   itemId: string;
   itemTitle: string;
   messages: ChatMessage[];
+  returnState: ReturnState;
 };
 
 // Loads a chat thread for an accepted claim. Returns null if the viewer isn't a
@@ -57,6 +64,12 @@ export async function getChatContext(claimId: string): Promise<ChatContext | nul
     .eq("claim_id", claimId)
     .order("created_at", { ascending: true });
 
+  const { data: ret } = await supabase
+    .from("returns")
+    .select("finder_marked_at, claimant_confirmed_at")
+    .eq("claim_id", claimId)
+    .maybeSingle();
+
   return {
     claimId,
     userId: user.id,
@@ -65,5 +78,10 @@ export async function getChatContext(claimId: string): Promise<ChatContext | nul
     itemId: item.id,
     itemTitle: item.title,
     messages: (messages ?? []) as ChatMessage[],
+    returnState: {
+      exists: !!ret,
+      finderMarkedAt: ret?.finder_marked_at ?? null,
+      claimantConfirmedAt: ret?.claimant_confirmed_at ?? null,
+    },
   };
 }
