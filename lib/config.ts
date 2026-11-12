@@ -66,6 +66,18 @@ export const HOLDING_OPTIONS = [
 ] as const;
 export type Holding = (typeof HOLDING_OPTIONS)[number]["value"];
 
+// Days after posting, with the item still unclaimed and held by the finder,
+// before we remind the finder to hand it to the official office (README §6, §13).
+export const REMINDER_DAYS = 7;
+
+// Which official Lost & Found office an unclaimed item should go to (README §3):
+// hostel-side finds → Hostel L&F office; everything else → main gate desk.
+export function officeForZone(zone: string | null | undefined): string {
+  return zone && zone.startsWith("Hostel Block")
+    ? "Hostel Lost & Found office"
+    : "Main gate Lost & Found desk";
+}
+
 // Supabase Storage bucket for item photos (public read; see 0002 migration).
 export const ITEM_PHOTOS_BUCKET = "item-photos";
 
